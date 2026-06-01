@@ -1,75 +1,93 @@
-// Seleção dos elementos do DOM
-const form = document.getElementById('cadastroForm');
-const nomeInput = document.getElementById('nome');
-const idadeInput = document.getElementById('idade');
+// Controle de Estado do Jogo Fictício
+let saldo = 1000;
+const opcoesRoleta = [
+    { multiplicador: 0, texto: "X0" },
+    { multiplicador: 2, texto: "X2" },
+    { multiplicador: 0.5, texto: "X0.5" },
+    { multiplicador: 3, texto: "X3" },
+    { multiplicador: 0, texto: "X0" },
+    { multiplicador: 1.5, texto: "X1.5" }
+];
 
-const nomeErro = document.getElementById('nomeErro');
-const idadeErro = document.getElementById('idadeErro');
-const feedbackGeral = document.getElementById('feedbackGeral');
+// Elementos da Interface
+const form = document.getElementById('jogoForm');
+const valorInput = document.getElementById('valorPontos');
+const erroPontos = document.getElementById('erroPontos');
+const saldoTela = document.getElementById('saldoAtual');
+const roleta = document.getElementById('roleta');
+const btnGirar = document.getElementById('btnGirar');
+const feedbackResultado = document.getElementById('feedbackResultado');
 
-// Evento de submissão do formulário
 form.addEventListener('submit', function(event) {
-    // Previne o comportamento padrão de recarregar a página
-    event.preventDefault(); 
+    event.preventDefault();
+
+    const pontosInseridos = parseInt(valorInput.value, 10);
+
+    // Validação básica do saldo e da entrada
+    if (isNaN(pontosInseridos) || pontosInseridos <= 0) {
+        erroPontos.textContent = "Insira uma quantidade de pontos válida.";
+        return;
+    }
+
+    if (pontosInseridos > saldo) {
+        erroPontos.textContent = "Pontos insuficientes para realizar a rodada.";
+        return;
+    }
+
+    // Limpa erros anteriores se tudo estiver válido
+    erroPontos.textContent = "";
+    btnGirar.disabled = true;
+    feedbackResultado.classList.remove('visivel');
+
+    // Deduz os pontos iniciais temporariamente para a simulação
+    saldo -= pontosInseridos;
+    saldoTela.textContent = saldo;
+
+    // Lógica do giro (graus aleatórios + voltas inteiras)
+    const totalOpcoes = opcoesRoleta.length;
+    const indiceSorteado = Math.floor(Math.random() * totalOpcoes);
+    const grausPorOpcao = 360 / totalOpcoes;
     
-    // Inicializa o status de validação como verdadeiro
-    let formularioValido = true;
+    // Calcula o ângulo para alinhar a fatia sorteada com o indicador de topo
+    const anguloDestino = 360 - (indiceSorteado * grausPorOpcao);
+    const voltasExtras = 5 * 360; // Força a roleta a girar várias vezes
+    const rotacaoTotal = voltasExtras + anguloDestino;
 
-    // 1. VALIDAÇÃO DO NOME (Mínimo 3 caracteres limpos)
-    const nomeValor = nomeInput.value.trim();
-    if (nomeValor.length < 3) {
-        nomeErro.textContent = "O nome deve ter pelo menos 3 caracteres.";
-        nomeInput.classList.add('invalido');
-        nomeInput.classList.remove('valido');
-        formularioValido = false;
-    } else {
-        nomeErro.textContent = ""; // Limpa o erro
-        nomeInput.classList.add('valido');
-        nomeInput.classList.remove('invalido');
-    }
+    // Reseta a rotação para evitar problemas em giros consecutivos
+    roleta.style.transition = 'none';
+    roleta.style.transform = 'rotate(0deg)';
+    
+    // Força o navegador a processar o reset antes de iniciar a animação
+    setTimeout(() => {
+        roleta.style.transition = 'transform 4s cubic-bezier(0.1, 0.8, 0.3, 1)';
+        roleta.style.transform = `rotate(${rotacaoTotal}deg)`;
+    }, 50);
 
-    // 2. VALIDAÇÃO DA IDADE (Entre 14 e 19 anos)
-    const idadeValor = parseInt(idadeInput.value, 10);
-    if (isNaN(idadeValor) || idadeValor < 14 || idadeValor > 19) {
-        idadeErro.textContent = "A idade deve estar entre 14 e 19 anos.";
-        idadeInput.classList.add('invalido');
-        idadeInput.classList.remove('valido');
-        formularioValido = false;
-    } else {
-        idadeErro.textContent = ""; // Limpa o erro
-        idadeInput.classList.add('valido');
-        idadeInput.classList.remove('invalido');
-    }
-
-    // 3. EXIBIÇÃO DO FEEDBACK GERAL
-    if (formularioValido) {
-        // Sucesso
-        feedbackGeral.textContent = "Sucesso! Seu cadastro foi enviado.";
-        feedbackGeral.className = "feedback-geral sucesso";
+    // Aguarda a conclusão da animação de giro (4 segundos)
+    setTimeout(() => {
+        const resultado = opcoesRoleta[indiceSorteado];
+        const pontosGanhos = Math.floor(pontosInseridos * resultado.multiplicador);
         
-        // Opcional: Limpa o formulário após o sucesso
-        form.reset();
-        nomeInput.classList.remove('valido');
-        idadeInput.classList.remove('valido');
-    } else {
-        // Erro Geral
-        feedbackGeral.textContent = "Por favor, corrija os erros no formulário antes de enviar.";
-        feedbackGeral.className = "feedback-geral erro";
-    }
-});
+        // Atualiza o saldo final com base no multiplicador obtido
+        saldo += pontosGanhos;
+        saldoTela.textContent = saldo;
 
-// Limpa os estilos de erro assim que o usuário volta a digitar (Melhoria de UX)
-nomeInput.addEventListener('input', () => {
-    if (nomeInput.value.trim().length >= 3) {
-        nomeErro.textContent = "";
-        nomeInput.classList.remove('invalido');
-    }
-});
+        // Exibe o feedback visual baseado no resultado da rodada fictícia
+        feedbackResultado.classList.add('visivel');
+        if (resultado.multiplicador > 1) {
+            feedbackResultado.style.backgroundColor = "#2ecc71";
+            feedbackResultado.style.color = "#fff";
+            feedbackResultado.textContent = `Parabéns! Caiu em ${resultado.texto}. Você recebeu ${pontosGanhos} pontos!`;
+        } else if (resultado.multiplicador === 1) {
+            feedbackResultado.style.backgroundColor = "#f1c40f";
+            feedbackResultado.style.color = "#000";
+            feedbackResultado.textContent = `Empate! Caiu em ${resultado.texto}. Seus pontos retornaram.`;
+        } else {
+            feedbackResultado.style.backgroundColor = "#e74c3c";
+            feedbackResultado.style.color = "#fff";
+            feedbackResultado.textContent = `Caiu em ${resultado.texto}. Você perdeu os pontos investidos nessa rodada.`;
+        }
 
-idadeInput.addEventListener('input', () => {
-    const idade = parseInt(idadeInput.value, 10);
-    if (!isNaN(idade) && idades >= 14 && idade <= 19) {
-        idadeErro.textContent = "";
-        idadeInput.classList.remove('invalido');
-    }
+        btnGirar.disabled = false;
+    }, 4050);
 });
