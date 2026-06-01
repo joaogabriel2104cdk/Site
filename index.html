@@ -1,1 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Cadastro Jovem Aprendiz</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+    <main class="container">
+        <header>
+            <h1>Cadastro de Candidato</h1>
+            <p>Preencha os dados abaixo para prosseguir.</p>
+        </header>
+
+        <form id="cadastroForm" novalidate>
+            
+            <div class="form-group">
+                <label for="nome">Nome Completo:</label>
+                <input 
+                    type="text" 
+                    id="nome" 
+                    name="nome" 
+                    required 
+                    aria-required="true" 
+                    aria-describedby="nomeErro"
+                    placeholder="Digite seu nome">
+                <span class="mensagem-erro" id="nomeErro" aria-live="polite"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="idade">Idade:</label>
+                <input 
+                    type="number" 
+                    id="idade" 
+                    name="idade" 
+                    required 
+                    aria-required="true" 
+                    aria-describedby="idadeErro"
+                    placeholder="Ex: 16">
+                <span class="mensagem-erro" id="idadeErro" aria-live="polite"></span>
+            </div>
+
+            <button type="submit" id="btnEnviar">Enviar Cadastro</button>
+
+            <div id="feedbackGeral" class="feedback-geral" role="status" aria-live="polite"></div>
+
+        </form>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
